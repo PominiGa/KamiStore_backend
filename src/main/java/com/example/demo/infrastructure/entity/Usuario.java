@@ -20,7 +20,7 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private long id;
+    private Long id;
     @Column(name = "nome", nullable = false, length = 100)
     private String nome;
     @Column(name = "email", nullable = false, unique = true, length = 100)
@@ -30,7 +30,7 @@ public class Usuario {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private List<Endereco> enderecos;
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private List<Telefone> telefones;
 
