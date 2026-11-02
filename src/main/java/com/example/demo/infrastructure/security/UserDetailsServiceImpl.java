@@ -18,16 +18,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     // Implementação do método para carregar detalhes do usuário pelo e-mail
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        boolean existe = usuarioRepository.existsByEmail(email);
+        //busca o usuario no banco de dados pelo email
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario não encontrado: " + email));
 
-        if (existe) {
-            Usuario usuario = usuarioRepository.findByEmail(email);
-            return org.springframework.security.core.userdetails.User
-                    .withUsername(usuario.getEmail()) // Define o nome de usuário como o e-mail
-                    .password(usuario.getSenha()) // Define a senha do usuário
-                    .build(); // Constrói o objeto UserDetails
-        } else {
-            throw new UsernameNotFoundException("Usuario não encontrado: " + email);
-        }
+        return org.springframework.security.core.userdetails.User
+                .withUsername(usuario.getEmail()) // Define o nome de usuário como o e-mail
+                .password(usuario.getSenha()) // Define a senha do usuário
+                .build(); // Constrói o objeto UserDetails
     }
 }

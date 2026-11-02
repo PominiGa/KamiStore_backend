@@ -17,7 +17,6 @@ public class JwtUtil {
     private final String secretKey = "CHAVE-REMOVIDA-DO-HISTORICO";
 
 
-
     // Gera um token JWT com o nome de usuário e validade de 1 hora
     public String generateToken(String username) {
         return Jwts.builder()
