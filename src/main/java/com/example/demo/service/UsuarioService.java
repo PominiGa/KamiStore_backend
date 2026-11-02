@@ -22,7 +22,7 @@ public class UsuarioService {
             emailExiste(usuario.getEmail());
             return usuarioRepository.save(usuario);
         }catch (ConflictException e) {
-            throw new ConflictException("Email ja cadastrado: " + usuario.getEmail());
+            throw new ConflictException(e.getMessage());
         }
     }
 
@@ -33,7 +33,7 @@ public class UsuarioService {
                 throw new ConflictException("Email ja cadastrado: " + email);
             }
         }catch (ConflictException e) {
-            throw new ConflictException("Email ja cadastrado" + e.getCause());
+            throw new ConflictException("Email ja cadastrado: " + email);
         }
     }
     public boolean verificarEmailExistente(String email) {
