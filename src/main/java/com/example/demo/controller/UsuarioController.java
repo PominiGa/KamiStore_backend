@@ -1,9 +1,15 @@
 package com.example.demo.controller;
 
+import com.example.demo.controller.dtos.UsuarioDTO;
 import com.example.demo.infrastructure.entity.Usuario;
+import com.example.demo.infrastructure.security.JwtUtil;
 import com.example.demo.service.UsuarioService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +20,16 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+
+    public UsuarioController(UsuarioService usuarioService,
+                             AuthenticationManager authenticationManager,
+                             JwtUtil jwtUtil) {
+        this.usuarioService = usuarioService;
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+    }
 
     @PostMapping
     public ResponseEntity<Usuario> salvarUsuario(@RequestBody Usuario usuario) {
@@ -24,5 +40,14 @@ public class UsuarioController {
     public ResponseEntity<List<Usuario>> getAll() {
         List<Usuario> lista = usuarioService.listarTodos();
         return ResponseEntity.ok(lista);
+    }
+
+    @PostMapping("/login")
+    public String login(@RequestBody UsuarioDTO usuarioDTO) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(usuarioDTO.getEmail(),
+                        usuarioDTO.getSenha())
+        );
+        return jwtUtil.generateToken(authentication.getName());
     }
 }
