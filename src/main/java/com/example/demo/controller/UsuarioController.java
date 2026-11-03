@@ -42,12 +42,22 @@ public class UsuarioController {
         return ResponseEntity.ok(lista);
     }
 
+    @GetMapping(params = "email")
+    public ResponseEntity<Usuario> buscaUsuarioPorEmail(@RequestParam String email) {
+        return ResponseEntity.ok(usuarioService.buscarUsuarioPorEmail(email));
+    }
+
+    @DeleteMapping("/{email}")
+    public ResponseEntity<Void> deletarUsuarioPorEmail(@PathVariable String email) {
+        usuarioService.deletarUsuarioPorEmail(email);
+        return ResponseEntity.ok().build();
+    }
     @PostMapping("/login")
     public String login(@RequestBody UsuarioDTO usuarioDTO) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(usuarioDTO.getEmail(),
                         usuarioDTO.getSenha())
         );
-        return jwtUtil.generateToken(authentication.getName());
+        return "Bearer " + jwtUtil.generateToken(authentication.getName());
     }
 }
