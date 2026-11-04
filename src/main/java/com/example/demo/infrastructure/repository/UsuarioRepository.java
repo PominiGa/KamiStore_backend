@@ -1,6 +1,6 @@
 package com.example.demo.infrastructure.repository;
 
-import com.example.demo.infrastructure.entity.Usuario;
+import com.example.demo.infrastructure.entity.usuarios.Usuario;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

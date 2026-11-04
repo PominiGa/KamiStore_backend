@@ -1,4 +1,7 @@
 package com.example.demo.infrastructure.repository;
 
-public class ItemCarrinhoRepository {
+import com.example.demo.infrastructure.entity.produtos.ItemCarrinho;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ItemCarrinhoRepository extends JpaRepository<ItemCarrinho, Long> {
 }

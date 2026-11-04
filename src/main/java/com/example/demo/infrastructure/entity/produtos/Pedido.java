@@ -1,5 +1,7 @@
-package com.example.demo.infrastructure.entity;
+package com.example.demo.infrastructure.entity.produtos;
 
+import com.example.demo.infrastructure.entity.enums.PedidoStatus;
+import com.example.demo.infrastructure.entity.usuarios.Cliente;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +10,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter

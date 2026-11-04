@@ -1,4 +1,7 @@
 package com.example.demo.infrastructure.repository;
 
-public class PedidoRepository {
+import com.example.demo.infrastructure.entity.produtos.Pedido;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 }

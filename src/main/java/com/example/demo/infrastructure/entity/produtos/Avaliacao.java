@@ -1,5 +1,6 @@
-package com.example.demo.infrastructure.entity;
+package com.example.demo.infrastructure.entity.produtos;
 
+import com.example.demo.infrastructure.entity.usuarios.Cliente;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

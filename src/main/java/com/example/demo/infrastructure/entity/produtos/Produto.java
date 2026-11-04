@@ -1,6 +1,7 @@
-package com.example.demo.infrastructure.entity;
+package com.example.demo.infrastructure.entity.produtos;
 
 import com.example.demo.infrastructure.entity.enums.ProdutoStatus;
+import com.example.demo.infrastructure.entity.usuarios.Vendedor;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

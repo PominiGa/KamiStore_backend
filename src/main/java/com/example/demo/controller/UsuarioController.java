@@ -1,10 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.controller.dtos.UsuarioDTO;
-import com.example.demo.infrastructure.entity.Usuario;
+import com.example.demo.infrastructure.entity.usuarios.Usuario;
 import com.example.demo.infrastructure.security.JwtUtil;
 import com.example.demo.service.UsuarioService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;

@@ -1,4 +1,4 @@
-package com.example.demo.infrastructure.entity;
+package com.example.demo.infrastructure.entity.usuarios;
 
 import com.example.demo.infrastructure.entity.enums.UsuarioRole;
 import jakarta.persistence.*;
@@ -10,7 +10,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.List;
 
