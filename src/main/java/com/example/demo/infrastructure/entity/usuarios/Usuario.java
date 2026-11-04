@@ -1,12 +1,13 @@
 package com.example.demo.infrastructure.entity;
 
+import com.example.demo.infrastructure.entity.enums.UsuarioRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.security.InvalidParameterException;
@@ -16,44 +17,65 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "usuario")
-
 public class Usuario implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
-    @Column(name = "nome", nullable = false, length = 100)
+
+    @Column(nullable = false, length = 100)
     private String nome;
-    @Column(name = "email", nullable = false, unique = true, length = 100)
+
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
-    @Column(name = "senha", nullable = false)
+
+    @Column(nullable = false)
     private String senha;
+
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "usuario_id", referencedColumnName = "id")
+    @JoinColumn(name = "usuario_id")
     private List<Endereco> enderecos;
+
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "usuario_id", referencedColumnName = "id")
+    @JoinColumn(name = "usuario_id")
     private List<Telefone> telefones;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UsuarioRole usuarioRole;
+
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private Vendedor vendedor;
+
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private Cliente cliente;
 
     public void setEmail(String email) {
         if (email == null || email.isBlank()) {
-            throw new InvalidParameterException("Email não pode ser vazio");
+            throw new IllegalArgumentException("Email não pode ser vazio");
         }
-        if(!email.contains("@") || email.contains(".")) {
-            throw new InvalidParameterException("Email invalido");
+
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new IllegalArgumentException("Email inválido");
         }
+
+        this.email = email;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(
+                new SimpleGrantedAuthority(usuarioRole.name())
+        );
     }
 
     @Override
-    public @Nullable String getPassword() {
+    public String getPassword() {
         return senha;
     }
 
