@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.infrastructure.entity.enums.UsuarioRole;
 import com.example.demo.infrastructure.entity.usuarios.Cliente;
 import com.example.demo.infrastructure.entity.usuarios.Usuario;
 import com.example.demo.infrastructure.exceptions.ConflictException;
@@ -24,6 +25,7 @@ public class ClienteService {
 
         validarCpf(cpf);
 
+        usuario.setUsuarioRole(UsuarioRole.CLIENTE);
         Cliente cliente = new Cliente();
         cliente.setUsuario(usuario);
         cliente.setCpf(cpf);
