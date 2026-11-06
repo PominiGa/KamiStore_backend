@@ -1,7 +1,10 @@
 package com.example.demo.infrastructure.repository;
 
-import com.example.demo.infrastructure.entity.produtos.Avaliacao;
+import com.example.demo.infrastructure.entity.produtos.Carrinho;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CarrinhoRepository extends JpaRepository<Avaliacao,Long> {
+import java.util.Optional;
+
+public interface CarrinhoRepository extends JpaRepository<Carrinho, Long> {
+    Optional<Carrinho> findByClienteId(Long clienteId);
 }

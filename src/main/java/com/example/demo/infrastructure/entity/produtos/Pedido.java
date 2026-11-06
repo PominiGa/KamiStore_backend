@@ -42,4 +42,8 @@ public class Pedido {
 
     @Column(nullable = false)
     private LocalDateTime dataPedido;
+
+    // Cópia do endereço no momento da compra (não muda se o cliente editar/remover o endereço depois)
+    @Column(length = 255)
+    private String enderecoEntrega;
 }
