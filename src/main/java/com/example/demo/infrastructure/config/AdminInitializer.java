@@ -6,10 +6,12 @@ import com.example.demo.infrastructure.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 // Cria um usuário ADMIN na inicialização (se ainda não existir), já que não há endpoint público para isso
 @Component
+@Order(1) // antes do MockDataInitializer, que usa o admin
 public class AdminInitializer implements CommandLineRunner {
 
     private final UsuarioRepository usuarioRepository;
