@@ -45,10 +45,10 @@ public class MockDataInitializer implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(MockDataInitializer.class);
 
     public static final String SENHA = "senha123";
-    public static final String VENDEDOR_TECH = "tech@javanauta.com";
-    public static final String VENDEDOR_MODA = "moda@javanauta.com";
-    public static final String CLIENTE_ANA = "ana@javanauta.com";
-    public static final String CLIENTE_BRUNO = "bruno@javanauta.com";
+    public static final String VENDEDOR_TECH = "tech@kamistore.com";
+    public static final String VENDEDOR_MODA = "moda@kamistore.com";
+    public static final String CLIENTE_ANA = "ana@kamistore.com";
+    public static final String CLIENTE_BRUNO = "bruno@kamistore.com";
 
     private final UsuarioRepository usuarioRepository;
     private final VendedorService vendedorService;
@@ -100,10 +100,10 @@ public class MockDataInitializer implements CommandLineRunner {
 
     private void popular() {
         // ---------- Lojas ----------
-        vendedorService.criarVendedor(new VendedorRequestDTO("Javanauta Tech", VENDEDOR_TECH, SENHA,
+        vendedorService.criarVendedor(new VendedorRequestDTO("KamiStore Tech", VENDEDOR_TECH, SENHA,
                 cnpj("45123987"), List.of(endereco("Av. Paulista", 1000, "Sala 12", "São Paulo", "SP", "01310-100")),
                 List.of(new TelefoneRequestDTO(11, "33334444"))));
-        vendedorService.criarVendedor(new VendedorRequestDTO("Javanauta Moda", VENDEDOR_MODA, SENHA,
+        vendedorService.criarVendedor(new VendedorRequestDTO("KamiStore Moda", VENDEDOR_MODA, SENHA,
                 cnpj("38765412"), List.of(endereco("Rua Oscar Freire", 500, null, "São Paulo", "SP", "01426-001")),
                 List.of(new TelefoneRequestDTO(11, "35556666"))));
 
@@ -116,7 +116,7 @@ public class MockDataInitializer implements CommandLineRunner {
                 List.of(new TelefoneRequestDTO(21, "998765432"))));
 
         // ---------- Produtos da loja Tech (sem variações) ----------
-        ProdutoResponseDTO notebook = produto(VENDEDOR_TECH, "Notebook Javanauta Pro 15\"",
+        ProdutoResponseDTO notebook = produto(VENDEDOR_TECH, "Notebook Kami Pro 15\"",
                 "Intel Core i7, 16GB RAM, SSD 512GB, tela Full HD 15.6\"", "4299.90", 8, null,
                 new Color(0x2B3A55), new Color(0x4F6D9A));
         ProdutoResponseDTO mouse = produto(VENDEDOR_TECH, "Mouse Gamer RGB 12000 DPI",
@@ -343,7 +343,7 @@ public class MockDataInitializer implements CommandLineRunner {
         desenharCentralizado(g, legenda, new Font(Font.SANS_SERIF, Font.PLAIN, 26), 440 + deslocamento / 2, 360);
 
         g.setColor(fundoClaro ? new Color(0x333333) : Color.WHITE);
-        desenharCentralizado(g, "Javanauta Store", new Font(Font.SANS_SERIF, Font.BOLD, 28), 740, 760);
+        desenharCentralizado(g, "KamiStore", new Font(Font.SANS_SERIF, Font.BOLD, 28), 740, 760);
         g.dispose();
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
