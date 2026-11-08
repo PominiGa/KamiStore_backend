@@ -4,18 +4,37 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.Date;
 
 @Service
 public class JwtUtil {
 
-    // Chave secreta usada para assinar e verificar tokens JWT
-    private final String secretKey = "CHAVE-REMOVIDA-DO-HISTORICO";
+    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
 
+    // Chave secreta usada para assinar e verificar tokens JWT.
+    // Vem da variável de ambiente JWT_SECRET (ou do application-local.properties) e NUNCA deve ficar no código:
+    // quem conhece a chave consegue gerar tokens válidos de qualquer usuário, inclusive ADMIN
+    private final String secretKey;
+
+    public JwtUtil(@Value("${app.jwt.secret:}") String secret) {
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            byte[] aleatoria = new byte[64];
+            new SecureRandom().nextBytes(aleatoria);
+            this.secretKey = java.util.Base64.getEncoder().encodeToString(aleatoria);
+            log.warn("JWT_SECRET não definido (ou com menos de 32 bytes): usando uma chave aleatória. "
+                    + "Os tokens deixam de valer a cada reinício da aplicação.");
+        } else {
+            this.secretKey = secret;
+        }
+    }
 
     // Gera um token JWT com o nome de usuário e validade de 1 hora
     public String generateToken(String username) {

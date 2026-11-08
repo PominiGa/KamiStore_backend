@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Configurações locais com senhas/chaves (nunca versionar) ###
+application-local.properties
+.env

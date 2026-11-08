@@ -1,0 +1,13 @@
+# Copie este arquivo para application-local.properties (mesma pasta) e preencha.
+# O application-local.properties é ignorado pelo git: NUNCA versione senhas ou chaves.
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/teste
+spring.datasource.username=postgres
+spring.datasource.password=SUA_SENHA_DO_POSTGRES
+
+# Gere uma chave longa e aleatória, por exemplo: openssl rand -base64 64
+app.jwt.secret=TROQUE_POR_UMA_CHAVE_ALEATORIA_COM_PELO_MENOS_32_CARACTERES
+
+# Credenciais do ADMIN criado na inicialização
+app.admin.email=admin@ecommerce.com
+app.admin.senha=TROQUE_ESTA_SENHA
