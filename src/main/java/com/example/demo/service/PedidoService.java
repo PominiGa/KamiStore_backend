@@ -10,6 +10,7 @@ import com.example.demo.infrastructure.entity.produtos.ItemCarrinho;
 import com.example.demo.infrastructure.entity.produtos.ItemPedido;
 import com.example.demo.infrastructure.entity.produtos.Pedido;
 import com.example.demo.infrastructure.entity.produtos.Produto;
+import com.example.demo.infrastructure.entity.produtos.ProdutoVariacao;
 import com.example.demo.infrastructure.entity.usuarios.Cliente;
 import com.example.demo.infrastructure.entity.usuarios.Endereco;
 import com.example.demo.infrastructure.entity.usuarios.Usuario;
@@ -25,9 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class PedidoService {
@@ -38,19 +37,22 @@ public class PedidoService {
     private final VendedorService vendedorService;
     private final UsuarioService usuarioService;
     private final CarrinhoService carrinhoService;
+    private final ProdutoService produtoService;
 
     public PedidoService(PedidoRepository pedidoRepository,
                          EntityManager entityManager,
                          ClienteService clienteService,
                          VendedorService vendedorService,
                          UsuarioService usuarioService,
-                         CarrinhoService carrinhoService) {
+                         CarrinhoService carrinhoService,
+                         ProdutoService produtoService) {
         this.pedidoRepository = pedidoRepository;
         this.entityManager = entityManager;
         this.clienteService = clienteService;
         this.vendedorService = vendedorService;
         this.usuarioService = usuarioService;
         this.carrinhoService = carrinhoService;
+        this.produtoService = produtoService;
     }
 
     // Checkout: transforma o carrinho do cliente em um pedido e baixa o estoque
@@ -77,33 +79,59 @@ public class PedidoService {
 
         BigDecimal total = BigDecimal.ZERO;
 
-        // Ordena por id para travar os produtos sempre na mesma ordem (evita deadlock entre compras simultâneas)
+        // Ordena por produto/variação para travar sempre na mesma ordem (evita deadlock entre compras simultâneas)
         List<ItemCarrinho> itensCarrinho = carrinho.getItens().stream()
-                .sorted(Comparator.comparing(i -> i.getProduto().getId()))
+                .sorted(Comparator.comparing((ItemCarrinho i) -> i.getProduto().getId())
+                        .thenComparing(i -> i.getVariacao() != null ? i.getVariacao().getId() : 0L))
                 .toList();
 
+        Set<Long> produtosTravados = new HashSet<>();
         for (ItemCarrinho itemCarrinho : itensCarrinho) {
-            Produto produto = travarProduto(itemCarrinho.getProduto());
+            Produto produto = travarProduto(itemCarrinho.getProduto(), produtosTravados);
+            ProdutoVariacao variacao = itemCarrinho.getVariacao();
+            int quantidade = itemCarrinho.getQuantidade();
 
             if (produto.getProdutoStatus() != ProdutoStatus.ATIVO) {
                 throw new RegraNegocioException("Produto indisponível: " + produto.getNome());
             }
-            if (produto.getQuantidade() < itemCarrinho.getQuantidade()) {
-                throw new RegraNegocioException("Estoque insuficiente para " + produto.getNome()
-                        + ". Disponível: " + produto.getQuantidade());
+
+            BigDecimal preco;
+            if (variacao != null) {
+                entityManager.refresh(variacao, LockModeType.PESSIMISTIC_WRITE);
+                String nome = produto.getNome() + " (" + variacao.getDescricao() + ")";
+                if (!variacao.isAtivo()) {
+                    throw new RegraNegocioException("Variação indisponível: " + nome);
+                }
+                if (variacao.getQuantidade() < quantidade) {
+                    throw new RegraNegocioException("Estoque insuficiente para " + nome
+                            + ". Disponível: " + variacao.getQuantidade());
+                }
+                variacao.setQuantidade(variacao.getQuantidade() - quantidade);
+                preco = variacao.getPrecoEfetivo();
+            } else {
+                if (produtoService.possuiVariacoes(produto.getId())) {
+                    throw new RegraNegocioException("Escolha uma variação (cor/tamanho) para " + produto.getNome());
+                }
+                if (produto.getQuantidade() < quantidade) {
+                    throw new RegraNegocioException("Estoque insuficiente para " + produto.getNome()
+                            + ". Disponível: " + produto.getQuantidade());
+                }
+                preco = produto.getPreco();
             }
 
-            produto.setQuantidade(produto.getQuantidade() - itemCarrinho.getQuantidade());
+            // O estoque do produto é a soma das variações, então baixa nos dois
+            produto.setQuantidade(produto.getQuantidade() - quantidade);
             ProdutoService.ajustarStatusPorEstoque(produto);
 
             ItemPedido itemPedido = new ItemPedido();
             itemPedido.setPedido(pedido);
             itemPedido.setProduto(produto);
-            itemPedido.setQuantidade(itemCarrinho.getQuantidade());
-            itemPedido.setPrecoUnitario(produto.getPreco()); // guarda o preço do momento da compra
+            itemPedido.setVariacao(variacao);
+            itemPedido.setQuantidade(quantidade);
+            itemPedido.setPrecoUnitario(preco); // guarda o preço do momento da compra
             pedido.getItens().add(itemPedido);
 
-            total = total.add(produto.getPreco().multiply(BigDecimal.valueOf(itemCarrinho.getQuantidade())));
+            total = total.add(preco.multiply(BigDecimal.valueOf(quantidade)));
         }
 
         pedido.setValorTotal(total);
@@ -182,16 +210,33 @@ public class PedidoService {
     }
 
     private void devolverEstoque(Pedido pedido) {
-        for (ItemPedido item : pedido.getItens()) {
-            Produto produto = travarProduto(item.getProduto());
+        Set<Long> produtosTravados = new HashSet<>();
+        List<ItemPedido> itens = pedido.getItens().stream()
+                .sorted(Comparator.comparing((ItemPedido i) -> i.getProduto().getId())
+                        .thenComparing(i -> i.getVariacao() != null ? i.getVariacao().getId() : 0L))
+                .toList();
+        for (ItemPedido item : itens) {
+            Produto produto = travarProduto(item.getProduto(), produtosTravados);
+            ProdutoVariacao variacao = item.getVariacao();
+            if (variacao != null) {
+                entityManager.refresh(variacao, LockModeType.PESSIMISTIC_WRITE);
+                if (!variacao.isAtivo()) {
+                    continue; // variação foi removida pelo vendedor: não há onde devolver o estoque
+                }
+                variacao.setQuantidade(variacao.getQuantidade() + item.getQuantidade());
+            }
             produto.setQuantidade(produto.getQuantidade() + item.getQuantidade());
             ProdutoService.ajustarStatusPorEstoque(produto);
         }
     }
 
-    // Trava a linha do produto e relê o estoque do banco (evita vender mais do que existe em compras simultâneas)
-    private Produto travarProduto(Produto produto) {
-        entityManager.refresh(produto, LockModeType.PESSIMISTIC_WRITE);
+    // Trava a linha do produto e relê o estoque do banco (evita vender mais do que existe em compras simultâneas).
+    // Só faz o refresh na 1ª vez: o mesmo produto pode aparecer em vários itens (variações diferentes) e um
+    // segundo refresh descartaria a baixa de estoque já feita em memória
+    private Produto travarProduto(Produto produto, Set<Long> jaTravados) {
+        if (jaTravados.add(produto.getId())) {
+            entityManager.refresh(produto, LockModeType.PESSIMISTIC_WRITE);
+        }
         return produto;
     }
 

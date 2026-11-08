@@ -9,6 +9,9 @@ public record ItemCarrinhoRequestDTO(
         @NotNull
         Long produtoId,
 
+        @Schema(example = "3", description = "Obrigatório se o produto tiver variações (cor/tamanho)")
+        Long variacaoId,
+
         @Schema(example = "2")
         @NotNull @Positive
         Integer quantidade

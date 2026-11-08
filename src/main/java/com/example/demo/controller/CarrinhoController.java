@@ -5,6 +5,7 @@ import com.example.demo.controller.dtos.request.QuantidadeRequestDTO;
 import com.example.demo.controller.dtos.response.CarrinhoResponseDTO;
 import com.example.demo.service.CarrinhoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class CarrinhoController {
     }
 
     @PostMapping("/itens")
-    @Operation(summary = "Adicionar produto", description = "Se o produto já estiver no carrinho, soma a quantidade")
+    @Operation(summary = "Adicionar produto", description = "Se o produto (na mesma variação) já estiver no carrinho, soma a quantidade. Produtos com cor/tamanho exigem variacaoId")
     public ResponseEntity<CarrinhoResponseDTO> adicionarItem(@AuthenticationPrincipal UserDetails usuarioLogado,
                                                              @RequestBody @Valid ItemCarrinhoRequestDTO dto) {
         return ResponseEntity.ok(carrinhoService.adicionarItem(usuarioLogado.getUsername(), dto));
@@ -42,15 +43,19 @@ public class CarrinhoController {
     @Operation(summary = "Alterar quantidade de um produto")
     public ResponseEntity<CarrinhoResponseDTO> atualizarQuantidade(@AuthenticationPrincipal UserDetails usuarioLogado,
                                                                    @PathVariable Long produtoId,
+                                                                   @Parameter(description = "Variação (cor/tamanho) do item, se houver mais de uma no carrinho")
+                                                                   @RequestParam(required = false) Long variacaoId,
                                                                    @RequestBody @Valid QuantidadeRequestDTO dto) {
-        return ResponseEntity.ok(carrinhoService.atualizarQuantidade(usuarioLogado.getUsername(), produtoId, dto.quantidade()));
+        return ResponseEntity.ok(carrinhoService.atualizarQuantidade(usuarioLogado.getUsername(), produtoId, variacaoId, dto.quantidade()));
     }
 
     @DeleteMapping("/itens/{produtoId}")
     @Operation(summary = "Remover produto do carrinho")
     public ResponseEntity<CarrinhoResponseDTO> removerItem(@AuthenticationPrincipal UserDetails usuarioLogado,
-                                                           @PathVariable Long produtoId) {
-        return ResponseEntity.ok(carrinhoService.removerItem(usuarioLogado.getUsername(), produtoId));
+                                                           @PathVariable Long produtoId,
+                                                           @Parameter(description = "Variação (cor/tamanho) do item, se houver mais de uma no carrinho")
+                                                           @RequestParam(required = false) Long variacaoId) {
+        return ResponseEntity.ok(carrinhoService.removerItem(usuarioLogado.getUsername(), produtoId, variacaoId));
     }
 
     @DeleteMapping

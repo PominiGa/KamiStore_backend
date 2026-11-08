@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
@@ -71,6 +74,18 @@ public class GlobalExceptionHandler {
                 ? "Corpo da requisição inválido ou mal formatado"
                 : e.getMessage();
         return erro(HttpStatus.BAD_REQUEST, mensagem, request, null);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
+    public ErroResponseDTO arquivoGrande(MaxUploadSizeExceededException e, HttpServletRequest request) {
+        return erro(HttpStatus.CONTENT_TOO_LARGE, "Arquivo muito grande: cada imagem pode ter no máximo 5MB", request, null);
+    }
+
+    @ExceptionHandler({MultipartException.class, MissingServletRequestPartException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErroResponseDTO multipartInvalido(Exception e, HttpServletRequest request) {
+        return erro(HttpStatus.BAD_REQUEST, "Envie as imagens como multipart/form-data no campo 'imagens'", request, null);
     }
 
     @ExceptionHandler(AuthenticationException.class)

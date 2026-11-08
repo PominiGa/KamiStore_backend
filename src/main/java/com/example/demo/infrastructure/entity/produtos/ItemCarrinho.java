@@ -15,7 +15,8 @@ import lombok.Setter;
         name = "item_carrinho",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        columnNames = {"carrinho_id", "produto_id"}
+                        name = "uk_item_carrinho_produto_variacao",
+                        columnNames = {"carrinho_id", "produto_id", "variacao_id"}
                 )
         }
 )
@@ -32,6 +33,11 @@ public class ItemCarrinho {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;
+
+    // Cor/tamanho escolhido (null se o produto não tiver variações)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variacao_id")
+    private ProdutoVariacao variacao;
 
     @Column(nullable = false)
     private Integer quantidade;

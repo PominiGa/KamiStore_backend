@@ -28,6 +28,11 @@ public class ItemPedido {
     @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;
 
+    // Cor/tamanho comprado (null se o produto não tiver variações)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variacao_id")
+    private ProdutoVariacao variacao;
+
     @Column(nullable = false)
     private Integer quantidade;
 

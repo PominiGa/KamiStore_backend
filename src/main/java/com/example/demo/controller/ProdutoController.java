@@ -4,6 +4,7 @@ import com.example.demo.controller.dtos.request.ProdutoRequestDTO;
 import com.example.demo.controller.dtos.request.ProdutoStatusRequestDTO;
 import com.example.demo.controller.dtos.response.PageResponseDTO;
 import com.example.demo.controller.dtos.response.ProdutoResponseDTO;
+import com.example.demo.infrastructure.entity.produtos.ProdutoImagem;
 import com.example.demo.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,12 +14,21 @@ import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/produtos")
@@ -88,6 +98,44 @@ public class ProdutoController {
     @Operation(summary = "[VENDEDOR] Remover produto", description = "Remoção lógica: o produto fica INATIVO (pode existir em pedidos)")
     public ResponseEntity<Void> remover(@AuthenticationPrincipal UserDetails usuarioLogado, @PathVariable Long id) {
         produtoService.desativar(usuarioLogado.getUsername(), id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ===================== Imagens =====================
+
+    @PostMapping(value = "/{id}/imagens", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyAuthority('VENDEDOR', 'ADMIN')")
+    @Operation(summary = "[VENDEDOR] Enviar imagens do produto",
+            description = "multipart/form-data com uma ou mais imagens no campo 'imagens' (JPEG, PNG, WEBP ou GIF, até 5MB cada, máx. 10 por produto)")
+    public ResponseEntity<ProdutoResponseDTO> adicionarImagens(@AuthenticationPrincipal UserDetails usuarioLogado,
+                                                               @PathVariable Long id,
+                                                               @RequestParam("imagens") List<MultipartFile> imagens) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(produtoService.adicionarImagens(usuarioLogado.getUsername(), id, imagens));
+    }
+
+    @GetMapping("/{id}/imagens/{imagemId}")
+    @SecurityRequirements
+    @Operation(summary = "Exibir imagem do produto", description = "Retorna o arquivo da imagem (use no <img src>)")
+    public ResponseEntity<byte[]> buscarImagem(@PathVariable Long id, @PathVariable Long imagemId) {
+        ProdutoImagem imagem = produtoService.buscarImagem(id, imagemId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(imagem.getContentType()))
+                .contentLength(imagem.getDados().length)
+                .cacheControl(CacheControl.maxAge(7, TimeUnit.DAYS).cachePublic())
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline()
+                        .filename(imagem.getNomeArquivo(), StandardCharsets.UTF_8).build().toString())
+                .header("X-Content-Type-Options", "nosniff")
+                .body(imagem.getDados());
+    }
+
+    @DeleteMapping("/{id}/imagens/{imagemId}")
+    @PreAuthorize("hasAnyAuthority('VENDEDOR', 'ADMIN')")
+    @Operation(summary = "[VENDEDOR] Remover imagem do produto")
+    public ResponseEntity<Void> removerImagem(@AuthenticationPrincipal UserDetails usuarioLogado,
+                                              @PathVariable Long id,
+                                              @PathVariable Long imagemId) {
+        produtoService.removerImagem(usuarioLogado.getUsername(), id, imagemId);
         return ResponseEntity.noContent().build();
     }
 }
